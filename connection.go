@@ -4,9 +4,11 @@ package ircutil
 
 import (
   "bufio"
+  "crypto/tls"
   "errors"
   "fmt"
   "net"
+  "time"
 )
 
 // Server stores server connection details.
@@ -71,18 +73,33 @@ func CreateUser(nick string, uname string, real string, mode byte) (User,
 // using the specified user information. It sends initial messages as required
 // by the IRC protocol.
 func EstablishConnection(server Server, user User) (Client, error) {
-  // Attempt connection establishment.
-  conn, err := net.Dial("tcp", fmt.Sprintf("%s:%d", server.host, server.port))
-  if err != nil {
-    return Client{}, err;
+  // Attempt connection establishment. Use TLS if secure is specified. Timeout
+  // after one minute.
+  var conn net.Conn; var err error
+  if server.secure {
+    conn, err = tls.DialWithDialer(&(net.Dialer{Timeout: time.Duration(1) *
+      time.Minute}), "tcp", fmt.Sprintf("%s:%d", server.host, server.port),
+      nil)
+  } else {
+    conn, err = net.DialTimeout("tcp", fmt.Sprintf("%s:%d", server.host,
+      server.port), time.Duration(1) * time.Minute)
   }
+  if err != nil {
+    return Client{}, err
+  }
+  fmt.Printf("Connected to server \"%s\" (%s)\n", server.host,
+    conn.RemoteAddr())
 
   // Create client with with server, user, and connection. Start reading from
   // server.
   client := Client{true, server, user, conn, make(chan error)}
   go readLoop(client)
 
-  // Send required user registration messages to server.
+  // Send required user registration messages to server, including password if
+  // specified.
+  if len(server.pass) > 0 {
+    sendRawf(client, "PASS :%s", server.pass)
+  }
   sendRawf(client, "NICK %s", user.nick)
   sendRawf(client, "USER %s %d * :%s", user.user, user.mode, user.real)
 
