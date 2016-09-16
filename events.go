@@ -11,7 +11,7 @@ import (
 // parseMessage extracts the sender from a raw IRC message and determines if
 // the message is sending a command or response code. It also extracts the
 // response code if applicable.
-func parseMessage(client Client, msg string) {
+func parseMessage(client *Client, msg string) {
   // Remove line ending and print message to console for debugging. This print
   // should be removed at some point, or only executed in debugging.
   msg = strings.TrimSuffix(msg, "\r\n")
@@ -35,7 +35,7 @@ func parseMessage(client Client, msg string) {
 
 // handleResponse takes a response code to determine the correct action to take
 // after receiving a message from a server.
-func handleResponse(client Client, src string, code int, tokens []string) {
+func handleResponse(client *Client, src string, code int, tokens []string) {
   switch code {
   // 004 RPL_MYINFO is the last mandatory message to be sent after a client
   // registers with a server, meaning we can now start joining channels and
@@ -47,7 +47,7 @@ func handleResponse(client Client, src string, code int, tokens []string) {
 
 // handleCommand takes a command to determine the correct action to take after
 // receiving a message from a server.
-func handleCommand(client Client, src string, cmd string, tokens []string) {
+func handleCommand(client *Client, src string, cmd string, tokens []string) {
   switch cmd {
   // PING is sent by servers upon connection and at regular intervals. We will
   // send the same string back.
