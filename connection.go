@@ -87,7 +87,7 @@ func EstablishConnection(server Server, user User) (Client, error) {
   if err != nil {
     return Client{}, err
   }
-  fmt.Printf("Connected to server \"%s\" (%s)\n", server.host,
+  fmt.Printf("Connected to server \"%s:%d\" (%s)\n", server.host, server.port,
     conn.RemoteAddr())
 
   // Create client with with server, user, and connection. Start reading from
@@ -106,7 +106,6 @@ func EstablishConnection(server Server, user User) (Client, error) {
   return client, nil;
 }
 
-
 // readLoop is a goroutine used to read data from the server a client is
 // connected to.
 func readLoop(client Client) {
@@ -118,7 +117,7 @@ func readLoop(client Client) {
       client.errCh <- err
     }
 
-    fmt.Printf(msg)
+    parseMessage(client, msg)
   }
 }
 
