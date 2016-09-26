@@ -31,6 +31,7 @@ type User struct {
 // and active client connection.
 type Client struct {
   Active  bool
+  Ready   func(*Client)
   server  *Server
   user    *User
   conn    net.Conn
@@ -72,7 +73,8 @@ func CreateUser(nick string, uname string, real string, mode byte) (*User,
 // EstablishConnection establishes a connection to the specified IRC server
 // using the specified user information. It sends initial messages as required
 // by the IRC protocol.
-func EstablishConnection(server *Server, user *User) (*Client, error) {
+func EstablishConnection(server *Server, user *User, ready func(*Client)) (*Client,
+    error) {
   // Attempt connection establishment. Use TLS if secure is specified. Timeout
   // after one minute.
   var conn net.Conn; var err error
@@ -90,9 +92,9 @@ func EstablishConnection(server *Server, user *User) (*Client, error) {
   fmt.Printf("Connected to server \"%s:%d\" (%s)\n", server.host, server.port,
     conn.RemoteAddr())
 
-  // Create client with with server, user, and connection. Start reading from
-  // server.
-  client := Client{true, server, user, conn, make(chan error)}
+  // Create client with with server, user, connection, and intitialization
+  // function. Start reading from server.
+  client := Client{true, ready, server, user, conn, make(chan error)}
   go readLoop(&client)
 
   // Send required user registration messages to server, including password if

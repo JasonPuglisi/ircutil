@@ -38,10 +38,9 @@ func parseMessage(client *Client, msg string) {
 func handleResponse(client *Client, src string, code int, tokens []string) {
   switch code {
   // 004 RPL_MYINFO is the last mandatory message to be sent after a client
-  // registers with a server, meaning we can now start joining channels and
-  // reacting to user commands.
+  // registers with a server, meaning we can now start performing actions.
   case 4:
-    Join(client, "#snowie", "")
+    client.Ready(client)
   }
 }
 
