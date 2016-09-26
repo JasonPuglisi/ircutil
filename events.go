@@ -12,10 +12,11 @@ import (
 // the message is sending a command or response code. It also extracts the
 // response code if applicable.
 func parseMessage(client *Client, msg string) {
-  // Remove line ending and print message to console for debugging. This print
-  // should be removed at some point, or only executed in debugging.
+  // Remove line ending and print message to console for debugging.
   msg = strings.TrimSuffix(msg, "\r\n")
-  fmt.Printf("%s\n", msg)
+  if (client.Debug) {
+    fmt.Printf(">> %s\n", msg)
+  }
 
   // Set empty source and split message into tokens. Update source and remove
   // it from tokens if found.
