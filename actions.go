@@ -7,18 +7,43 @@ import (
   "strings"
 )
 
-// Join sends a raw JOIN to attach a client to a channel with an optional
-// password. If there is no password, it should be an empty string.
-func Join(client *Client, channel string, pass string) {
+// SendJoin attaches to a channel with an optional password. An empty string
+// indicates no password.
+func SendJoin(client *Client, channel string, pass string) {
   sendRaw(client, strings.TrimSpace(fmt.Sprintf("JOIN %s %s", channel, pass)))
 }
 
-// Pong sends a raw PONG with a message.
-func Pong(client *Client, msg string) {
+// SendNick sets or updates a nickname.
+func SendNick(client *Client, nick string) {
+  sendRawf(client, "NICK %s", nick)
+}
+
+// SendPass authenticates with a password-protected server.
+func SendPass(client *Client, pass string) {
+  sendRawf(client, "PASS :%s", pass)
+}
+
+// SendPong replies to a server ping.
+func SendPong(client *Client, msg string) {
   sendRawf(client, "PONG %s", msg)
 }
 
-// Privmsg sends a raw PRIVMSG to send text to a target.
-func Privmsg(client *Client, target string, msg string) {
+// SendPrivmsg sends a message to a user or channel.
+func SendPrivmsg(client *Client, target string, msg string) {
   sendRawf(client, "PRIVMSG %s :%s", target, msg)
+}
+
+// SendUser sends initial user details upon server connection. It parses a
+// string for the two possible initial mode characters 'w' and 'i'. No other
+// characters may be present.
+func SendUser(client *Client, user string, mode string, real string) {
+  intMode := 0
+  if strings.IndexRune(mode, 'w') < 0 {
+    intMode += 4
+  }
+  if strings.IndexRune(mode, 'i') < 0 {
+    intMode += 8
+  }
+
+  sendRawf(client, "USER %s %d * :%s", user, mode, real)
 }

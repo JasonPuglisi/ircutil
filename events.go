@@ -52,6 +52,6 @@ func handleCommand(client *Client, src string, cmd string, tokens []string) {
   // PING is sent by servers upon connection and at regular intervals. We will
   // send the same string back.
   case "PING":
-    Pong(client, strings.Join(tokens, " "))
+    SendPong(client, strings.Join(tokens, " "))
   }
 }

@@ -8,6 +8,7 @@ import (
   "errors"
   "fmt"
   "net"
+  "strings"
   "time"
 )
 
@@ -21,10 +22,10 @@ type Server struct {
 
 // User stores initial connection user details.
 type User struct {
-  nick string
-  user string
-  real string
-  mode byte
+  nick  string
+  user  string
+  real  string
+  modes string
 }
 
 // Client stores initial server/user details, client status, client channels,
@@ -55,20 +56,23 @@ func CreateServer(host string, port uint16, secure bool, pass string) (*Server,
 
 // CreateUser creates and returns a user for use in connections.
 // Username (uname) and (real)name will default to (nick)name if empty strings.
-// Mode must be 0 for none, 4 for +w, 8 for +i, or 12 for +iw.
-func CreateUser(nick string, uname string, real string, mode byte) (*User,
+// Modes must be a string containing only characters 'w' and 'i' or neither.
+func CreateUser(nick string, uname string, real string, modes string) (*User,
     error) {
   // Error if nickname is empty.
   if len(nick) < 1 {
     return &User{}, errors.New("creating user: nickname too short")
   }
 
-  // Error if bitmaskk is not 0, 4, 8, or 12.
-  if mode != 0 && mode != 4 && mode != 8 && mode != 12 {
-    return &User{}, errors.New("creating user: mode bitmask invalid")
+  // Error if modes are invalid.
+  runes, posW, posI := len(modes), strings.IndexRune(modes, 'w'),
+    strings.IndexRune(modes, 'i')
+  if (runes == 1 && posW == posI) || (runes == 2 && (posW < 0 || posI < 0)) ||
+      runes > 2 {
+    return &User{}, errors.New("creating user: mode string invalid")
   }
 
-  return &User{nick, uname, real, mode}, nil
+  return &User{nick, uname, real, modes}, nil
 }
 
 // EstablishConnection establishes a connection to the specified IRC server
@@ -101,10 +105,10 @@ func EstablishConnection(server *Server, user *User, ready func(*Client),
   // Send required user registration messages to server, including password if
   // specified.
   if len(server.pass) > 0 {
-    sendRawf(&client, "PASS :%s", server.pass)
+    SendPass(&client, server.pass)
   }
-  sendRawf(&client, "NICK %s", user.nick)
-  sendRawf(&client, "USER %s %d * :%s", user.user, user.mode, user.real)
+  SendNick(&client, user.nick)
+  SendUser(&client, user.user, user.modes, user.real)
 
   return &client, nil;
 }

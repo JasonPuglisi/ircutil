@@ -43,36 +43,41 @@ func TestCreateUser(t *testing.T) {
     nick string
     user string
     real string
-    mode byte
+    modes string
     err string
   }{
-    {"Inami", "inami", "Mahiru Inami", 0, ""},
-    {"I", "i", "I", 4, ""},
-    {"Inami", "inami", "Mahiru Inami", 8, ""},
-    {"Inami", "inami", "Mahiru Inami", 12, ""},
-    {"", "inami", "Mahiru Inami", 0, "creating user: nickname too short"},
-    {"Inami", "inami", "Mahiru Inami", 1, "creating user: mode bitmask " +
+    {"Inami", "inami", "Mahiru Inami", "", ""},
+    {"I", "i", "I", "w", ""},
+    {"Inami", "inami", "Mahiru Inami", "i", ""},
+    {"Inami", "inami", "Mahiru Inami", "wi", ""},
+    {"Inami", "inami", "Mahiru Inami", "iw", ""},
+    {"", "inami", "Mahiru Inami", "", "creating user: nickname too short"},
+    {"Inami", "inami", "Mahiru Inami", "a", "creating user: mode string " +
       "invalid"},
-    {"Inami", "inami", "Mahiru Inami", 13, "creating user: mode bitmask " +
+    {"Inami", "inami", "Mahiru Inami", "ia", "creating user: mode string " +
+      "invalid"},
+    {"Inami", "inami", "Mahiru Inami", "wa", "creating user: mode string " +
+      "invalid"},
+    {"Inami", "inami", "Mahiru Inami", "iwa", "creating user: mode string " +
       "invalid"},
   }
 
   for _, c := range cases {
-    _, err := CreateUser(c.nick, c.user, c.real, c.mode);
+    _, err := CreateUser(c.nick, c.user, c.real, c.modes);
 
     if err == nil && len(c.err) > 0 {
       t.Errorf("CreateUser(\"%s\", \"%s\", \"%s\", %d) did not produce an " +
-        "error, expected \"%s\"", c.nick, c.user, c.real, c.mode, c.err)
+        "error, expected \"%s\"", c.nick, c.user, c.real, c.modes, c.err)
     }
 
     if err != nil && len(c.err) < 1 {
       t.Errorf("CreateUser(\"%s\", \"%s\", \"%s\", %d) produced an error, " +
-        "expected no error", c.nick, c.user, c.real, c.mode)
+        "expected no error", c.nick, c.user, c.real, c.modes)
     }
 
     if err != nil && err.Error() != c.err {
       t.Errorf("CreateUser(\"%s\", \"%s\", \"%s\", %d) produced an incorrect " +
-        "error \"%s\", expected \"%s\"", c.nick, c.user, c.real, c.mode, err,
+        "error \"%s\", expected \"%s\"", c.nick, c.user, c.real, c.modes, err,
         c.err)
     }
   }
