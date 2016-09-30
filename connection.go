@@ -7,6 +7,7 @@ import (
   "crypto/tls"
   "errors"
   "fmt"
+  "log"
   "net"
   "strings"
   "time"
@@ -37,7 +38,6 @@ type Client struct {
   server  *Server
   user    *User
   conn    net.Conn
-  errCh   chan error
 }
 
 // CreateServer creates and returns a server for use in connections.
@@ -99,8 +99,9 @@ func EstablishConnection(server *Server, user *User, ready func(*Client),
 
   // Create client with with server, user, connection, intitialization
   // function, and debug setting. Start reading from server.
-  client := Client{true, debug, ready, server, user, conn, make(chan error)}
+  client := Client{true, debug, ready, server, user, conn}
   go readLoop(&client)
+  go pingLoop(&client)
 
   // Send required user registration messages to server, including password if
   // specified.
@@ -119,23 +120,35 @@ func readLoop(client *Client) {
   // Create reader for server data, and loop reads until client is stopped.
   reader := bufio.NewReader(client.conn)
   for client.Active {
-    msg, err := reader.ReadString('\n')
-    if err != nil {
-      client.errCh <- err
-    }
+    msg, _ := reader.ReadString('\n')
 
     parseMessage(client, msg)
+  }
+}
+
+// pingLoop is a goroutine used to send periodic pings to the server a client
+// is connected to in order to keep that connection alive.
+func pingLoop(client *Client) {
+  ticker := time.NewTicker(time.Minute)
+  for range ticker.C {
+    SendPing(client, time.Now().String())
   }
 }
 
 // sendRawf formats a string to create a raw IRC message that is sent to the
 // client's server. It appends necessary line endings.
 func sendRawf(client *Client, format string, a ...interface{}) {
-  fmt.Fprintf(client.conn, format + "\r\n", a...);
+  fmt.Fprintf(client.conn, format + "\r\n", a...)
+  if client.Debug {
+    log.Printf(">> " + format + "\n", a...)
+  }
 }
 
 // sendRaw sends a raw IRC message to the client's server. It appends necessary
 // line endings.
 func sendRaw(client *Client, msg string) {
-  fmt.Fprint(client.conn, msg + "\r\n");
+  fmt.Fprint(client.conn, msg + "\r\n")
+  if client.Debug {
+    log.Println(">>", msg)
+  }
 }

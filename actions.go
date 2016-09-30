@@ -23,9 +23,14 @@ func SendPass(client *Client, pass string) {
   sendRawf(client, "PASS :%s", pass)
 }
 
+// SendPing sends a ping to a server.
+func SendPing(client *Client, msg string) {
+  sendRawf(client, "PING :%s", msg)
+}
+
 // SendPong replies to a server ping.
 func SendPong(client *Client, msg string) {
-  sendRawf(client, "PONG %s", msg)
+  sendRawf(client, "PONG :%s", msg)
 }
 
 // SendPrivmsg sends a message to a user or channel.
@@ -45,5 +50,5 @@ func SendUser(client *Client, user string, mode string, real string) {
     intMode += 8
   }
 
-  sendRawf(client, "USER %s %d * :%s", user, mode, real)
+  sendRawf(client, "USER %s %d * :%s", user, intMode, real)
 }

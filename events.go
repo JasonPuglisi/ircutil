@@ -3,7 +3,7 @@
 package ircutil
 
 import (
-  "fmt"
+  "log"
   "strconv"
   "strings"
 )
@@ -15,14 +15,14 @@ func parseMessage(client *Client, msg string) {
   // Remove line ending and print message to console for debugging.
   msg = strings.TrimSuffix(msg, "\r\n")
   if (client.Debug) {
-    fmt.Printf(">> %s\n", msg)
+    log.Printf("<< %s\n", msg)
   }
 
   // Set empty source and split message into tokens. Update source and remove
   // it from tokens if found.
   src, tokens := "", strings.Split(msg, " ")
   if (tokens[0][0] == ':') {
-    src, tokens = tokens[0], tokens[1:]
+    src, tokens = tokens[0][1:], tokens[1:]
   }
 
   // Attempt to parse first token as number. If successful, handle the message
@@ -52,6 +52,6 @@ func handleCommand(client *Client, src string, cmd string, tokens []string) {
   // PING is sent by servers upon connection and at regular intervals. We will
   // send the same string back.
   case "PING":
-    SendPong(client, strings.Join(tokens, " "))
+    SendPong(client, strings.Join(tokens, " ")[1:])
   }
 }
