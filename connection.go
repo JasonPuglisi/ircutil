@@ -9,7 +9,6 @@ import (
   "fmt"
   "log"
   "net"
-  "strings"
   "strconv"
   "time"
 )
@@ -27,7 +26,6 @@ type User struct {
   nick  string
   user  string
   real  string
-  modes string
 }
 
 // Client stores initial server/user details, client status, client channels,
@@ -57,23 +55,21 @@ func CreateServer(host string, port uint16, secure bool, pass string) (*Server,
 
 // CreateUser creates and returns a user for use in connections.
 // Username (uname) and (real)name will default to (nick)name if empty strings.
-// Modes must be a string containing only characters 'w' and 'i' or neither.
-func CreateUser(nick string, uname string, real string, modes string) (*User,
-    error) {
+func CreateUser(nick string, uname string, real string) (*User, error) {
   // Error if nickname is empty.
   if len(nick) < 1 {
     return &User{}, errors.New("creating user: nickname too short")
   }
 
-  // Error if modes are invalid.
-  runes, posW, posI := len(modes), strings.IndexRune(modes, 'w'),
-    strings.IndexRune(modes, 'i')
-  if (runes == 1 && posW == posI) || (runes == 2 && (posW < 0 || posI < 0)) ||
-      runes > 2 {
-    return &User{}, errors.New("creating user: mode string invalid")
+  // Set username and realname to nickname if empty.
+  if len(uname) < 1 {
+    uname = nick
+  }
+  if len(real) < 1 {
+    real = nick
   }
 
-  return &User{nick, uname, real, modes}, nil
+  return &User{nick, uname, real}, nil
 }
 
 // EstablishConnection establishes a connection to the specified IRC server
@@ -109,7 +105,7 @@ func EstablishConnection(server *Server, user *User, ready func(*Client),
     SendPass(&client, server.pass)
   }
   SendNick(&client, user.nick)
-  SendUser(&client, user.user, user.modes, user.real)
+  SendUser(&client, user.user, user.real)
 
   return &client, nil;
 }

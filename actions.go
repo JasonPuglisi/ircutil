@@ -38,17 +38,7 @@ func SendPrivmsg(client *Client, target string, msg string) {
   sendRawf(client, "PRIVMSG %s :%s", target, msg)
 }
 
-// SendUser sends initial user details upon server connection. It parses a
-// string for the two possible initial mode characters 'w' and 'i'. No other
-// characters may be present.
-func SendUser(client *Client, user string, mode string, real string) {
-  intMode := 0
-  if strings.IndexRune(mode, 'w') < 0 {
-    intMode += 4
-  }
-  if strings.IndexRune(mode, 'i') < 0 {
-    intMode += 8
-  }
-
-  sendRawf(client, "USER %s %d * :%s", user, intMode, real)
+// SendUser sends initial user details upon server connection.
+func SendUser(client *Client, user string, real string) {
+  sendRawf(client, "USER %s 0 0 :%s", user, real)
 }

@@ -43,42 +43,32 @@ func TestCreateUser(t *testing.T) {
     nick string
     user string
     real string
-    modes string
     err string
   }{
-    {"Inami", "inami", "Mahiru Inami", "", ""},
-    {"I", "i", "I", "w", ""},
-    {"Inami", "inami", "Mahiru Inami", "i", ""},
-    {"Inami", "inami", "Mahiru Inami", "wi", ""},
-    {"Inami", "inami", "Mahiru Inami", "iw", ""},
-    {"", "inami", "Mahiru Inami", "", "creating user: nickname too short"},
-    {"Inami", "inami", "Mahiru Inami", "a", "creating user: mode string " +
-      "invalid"},
-    {"Inami", "inami", "Mahiru Inami", "ia", "creating user: mode string " +
-      "invalid"},
-    {"Inami", "inami", "Mahiru Inami", "wa", "creating user: mode string " +
-      "invalid"},
-    {"Inami", "inami", "Mahiru Inami", "iwa", "creating user: mode string " +
-      "invalid"},
+    {"Inami", "inami", "Mahiru Inami", ""},
+    {"I", "i", "I", ""},
+    {"Inami", "inami", "Mahiru Inami", ""},
+    {"Inami", "inami", "Mahiru Inami", ""},
+    {"Inami", "inami", "Mahiru Inami", ""},
+    {"", "inami", "Mahiru Inami", "creating user: nickname too short"},
   }
 
   for _, c := range cases {
-    _, err := CreateUser(c.nick, c.user, c.real, c.modes);
+    _, err := CreateUser(c.nick, c.user, c.real);
 
     if err == nil && len(c.err) > 0 {
-      t.Errorf("CreateUser(\"%s\", \"%s\", \"%s\", %d) did not produce an " +
-        "error, expected \"%s\"", c.nick, c.user, c.real, c.modes, c.err)
+      t.Errorf("CreateUser(\"%s\", \"%s\", \"%s\" did not produce an error, " +
+        "expected \"%s\"", c.nick, c.user, c.real, c.err)
     }
 
     if err != nil && len(c.err) < 1 {
-      t.Errorf("CreateUser(\"%s\", \"%s\", \"%s\", %d) produced an error, " +
-        "expected no error", c.nick, c.user, c.real, c.modes)
+      t.Errorf("CreateUser(\"%s\", \"%s\", \"%s\") produced an error, " +
+        "expected no error", c.nick, c.user, c.real)
     }
 
     if err != nil && err.Error() != c.err {
-      t.Errorf("CreateUser(\"%s\", \"%s\", \"%s\", %d) produced an incorrect " +
-        "error \"%s\", expected \"%s\"", c.nick, c.user, c.real, c.modes, err,
-        c.err)
+      t.Errorf("CreateUser(\"%s\", \"%s\", \"%s\") produced an incorrect " +
+        "error \"%s\", expected \"%s\"", c.nick, c.user, c.real, err, c.err)
     }
   }
 }
