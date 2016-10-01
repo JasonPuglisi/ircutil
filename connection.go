@@ -10,6 +10,7 @@ import (
   "log"
   "net"
   "strings"
+  "strconv"
   "time"
 )
 
@@ -32,9 +33,9 @@ type User struct {
 // Client stores initial server/user details, client status, client channels,
 // and active client connection.
 type Client struct {
-  Active  bool
   Debug   bool
   Ready   func(*Client)
+  Done    chan bool
   server  *Server
   user    *User
   conn    net.Conn
@@ -84,22 +85,21 @@ func EstablishConnection(server *Server, user *User, ready func(*Client),
   // after one minute.
   var conn net.Conn; var err error
   if server.secure {
-    conn, err = tls.DialWithDialer(&(net.Dialer{Timeout: time.Duration(1) *
-      time.Minute}), "tcp", fmt.Sprintf("%s:%d", server.host, server.port),
-      nil)
+    conn, err = tls.DialWithDialer(&(net.Dialer{Timeout: time.Minute}), "tcp",
+      fmt.Sprintf("%s:%d", server.host, server.port), nil)
   } else {
     conn, err = net.DialTimeout("tcp", fmt.Sprintf("%s:%d", server.host,
-      server.port), time.Duration(1) * time.Minute)
+      server.port), time.Minute)
   }
   if err != nil {
     return &Client{}, err
   }
-  fmt.Printf("Connected to server \"%s:%d\" (%s)\n", server.host, server.port,
+  log.Printf("Connected to server \"%s:%d\" (%s)\n", server.host, server.port,
     conn.RemoteAddr())
 
   // Create client with with server, user, connection, intitialization
   // function, and debug setting. Start reading from server.
-  client := Client{true, debug, ready, server, user, conn}
+  client := Client{debug, ready, make(chan bool, 1), server, user, conn}
   go readLoop(&client)
   go pingLoop(&client)
 
@@ -117,21 +117,46 @@ func EstablishConnection(server *Server, user *User, ready func(*Client),
 // readLoop is a goroutine used to read data from the server a client is
 // connected to.
 func readLoop(client *Client) {
-  // Create reader for server data, and loop reads until client is stopped.
+  // Create reader for server data.
   reader := bufio.NewReader(client.conn)
-  for client.Active {
-    msg, _ := reader.ReadString('\n')
-
-    parseMessage(client, msg)
+  for {
+    select {
+    // If the client is done, stop the goroutine.
+    case <-client.Done:
+      return
+    // Loop reads from server and set client to done if a timeout or error is
+    // encountered.
+    default:
+      // Make sure a message is received in at most three minutes, since we
+      // send a ping every two.
+      client.conn.SetReadDeadline(time.Now().Add(time.Minute * 3))
+      msg, err := reader.ReadString('\n')
+      client.conn.SetReadDeadline(time.Time{})
+      if err != nil {
+        log.Println(err)
+        close(client.Done)
+      } else {
+        parseMessage(client, msg)
+      }
+    }
   }
 }
 
 // pingLoop is a goroutine used to send periodic pings to the server a client
 // is connected to in order to keep that connection alive.
 func pingLoop(client *Client) {
-  ticker := time.NewTicker(time.Minute)
-  for range ticker.C {
-    SendPing(client, time.Now().String())
+  // Create ticker to send pings every two minutes.
+  ticker := time.NewTicker(time.Minute * 2)
+  for {
+    select {
+    // If the client is done, stop the time and goroutine.
+    case <-client.Done:
+      ticker.Stop()
+      return
+    // Loop pings to keep connection alive.
+    case <-ticker.C:
+      SendPing(client, strconv.FormatInt(time.Now().UnixNano(), 10))
+    }
   }
 }
 
