@@ -71,4 +71,26 @@ func TestCreateUser(t *testing.T) {
 				"error \"%s\", expected \"%s\"", c.nick, c.user, c.real, err, c.err)
 		}
 	}
+
+	u := cases[0]
+	user, _ := CreateUser(u.nick, u.user, u.real)
+	if user.nick != u.nick || user.user != u.user || user.real != u.real {
+		t.Errorf("CreateUser(\"%s\", \"%s\", \"%s\") produced overriden values "+
+			"{\"%s\", \"%s\", \"%s\"}, no overriden values expected", u.nick, u.user,
+			u.real, user.nick, user.user, user.real)
+	}
+
+	user, _ = CreateUser(u.nick, "", u.real)
+	if user.user != u.nick {
+		t.Errorf("CreateUser(\"%s\", \"\", \"%s\") produced an incorrect "+
+			"overriden username \"%s\", expected \"%s\"", u.nick, u.real, user.user,
+			u.nick)
+	}
+
+	user, _ = CreateUser(u.nick, u.user, "")
+	if user.real != u.nick {
+		t.Errorf("CreateUser(\"%s\", \"%s\", \"\") produced an incorrect "+
+			"overriden realname \"%s\", expected \"%s\"", u.nick, u.user, user.real,
+			u.nick)
+	}
 }
