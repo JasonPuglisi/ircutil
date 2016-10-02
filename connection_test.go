@@ -10,11 +10,12 @@ func TestCreateServer(t *testing.T) {
 		pass   string
 		err    string
 	}{
-		{"irc.example.com", 0, false, "", ""},
-		{"localhost", 1, true, "Password1!", ""},
+		{"irc.example.com", 1, false, "", ""},
+		{"localhost", 2, true, "Password1!", ""},
 		{"10.0.0.1", 65534, false, "", ""},
 		{"::1", 65535, false, "", ""},
-		{"", 0, false, "", "creating server: hostname too short"},
+		{"", 1, false, "", "creating server: hostname too short"},
+		{"irc.example.com", 0, false, "", "creating server: port is zero"},
 	}
 
 	for _, c := range cases {
@@ -70,27 +71,5 @@ func TestCreateUser(t *testing.T) {
 			t.Errorf("CreateUser(\"%s\", \"%s\", \"%s\") produced an incorrect "+
 				"error \"%s\", expected \"%s\"", c.nick, c.user, c.real, err, c.err)
 		}
-	}
-
-	u := cases[0]
-	user, _ := CreateUser(u.nick, u.user, u.real)
-	if user.nick != u.nick || user.user != u.user || user.real != u.real {
-		t.Errorf("CreateUser(\"%s\", \"%s\", \"%s\") produced overriden values "+
-			"{\"%s\", \"%s\", \"%s\"}, no overriden values expected", u.nick, u.user,
-			u.real, user.nick, user.user, user.real)
-	}
-
-	user, _ = CreateUser(u.nick, "", u.real)
-	if user.user != u.nick {
-		t.Errorf("CreateUser(\"%s\", \"\", \"%s\") produced an incorrect "+
-			"overriden username \"%s\", expected \"%s\"", u.nick, u.real, user.user,
-			u.nick)
-	}
-
-	user, _ = CreateUser(u.nick, u.user, "")
-	if user.real != u.nick {
-		t.Errorf("CreateUser(\"%s\", \"%s\", \"\") produced an incorrect "+
-			"overriden realname \"%s\", expected \"%s\"", u.nick, u.user, user.real,
-			u.nick)
 	}
 }

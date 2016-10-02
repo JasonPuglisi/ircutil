@@ -50,6 +50,11 @@ func CreateServer(host string, port uint16, secure bool, pass string) (*Server,
 		return &Server{}, errors.New("creating server: hostname too short")
 	}
 
+	// Error if port is zero.
+	if port == 0 {
+		return &Server{}, errors.New("creating server: port is zero")
+	}
+
 	return &Server{host, port, secure, pass}, nil
 }
 
@@ -59,14 +64,6 @@ func CreateUser(nick string, uname string, real string) (*User, error) {
 	// Error if nickname is empty.
 	if len(nick) < 1 {
 		return &User{}, errors.New("creating user: nickname too short")
-	}
-
-	// Set username and realname to nickname if empty.
-	if len(uname) < 1 {
-		uname = nick
-	}
-	if len(real) < 1 {
-		real = nick
 	}
 
 	return &User{nick, uname, real}, nil
