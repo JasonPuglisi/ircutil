@@ -4,6 +4,8 @@ package ircutil
 
 import (
 	"fmt"
+	"math/rand"
+	"strconv"
 	"strings"
 )
 
@@ -13,9 +15,25 @@ func SendJoin(client *Client, channel string, pass string) {
 	sendRaw(client, strings.TrimSpace(fmt.Sprintf("JOIN %s %s", channel, pass)))
 }
 
+// SendModeUser updates user modes.
+func SendModeUser(client *Client, modes string) {
+	sendRawf(client, "MODE %s %s", client.Nick, modes)
+}
+
 // SendNick sets or updates a nickname.
 func SendNick(client *Client, nick string) {
+	client.Nick = nick
 	sendRawf(client, "NICK %s", nick)
+}
+
+// SendNickRandom sets or updates a nickname to a random one.
+func SendNickRandom(client *Client) {
+	SendNick(client, "Inami"+strconv.Itoa(rand.Intn(10000)))
+}
+
+// SendNickservPass authenticates a nickname with Nickserv.
+func SendNickservPass(client *Client, pass string) {
+	SendPrivmsg(client, "nickserv", "identify "+pass)
 }
 
 // SendPass authenticates with a password-protected server.

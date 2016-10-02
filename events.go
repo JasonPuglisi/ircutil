@@ -15,7 +15,7 @@ func parseMessage(client *Client, msg string) {
 	// Remove line ending and print message to console for debugging.
 	msg = strings.TrimSuffix(msg, "\r\n")
 	if client.Debug {
-		log.Printf("%s \t<< %s\n", GetClientPrefix(client), msg)
+		log.Printf("%s \t<= %s\n", GetClientPrefix(client), msg)
 	}
 
 	// Set empty source and split message into tokens. Update source and remove
@@ -42,6 +42,10 @@ func handleResponse(client *Client, src string, code int, tokens []string) {
 	// registers with a server, meaning we can now start performing actions.
 	case 4:
 		client.Ready(client)
+	// 433 ERR_NICKNAMEINUSE is send when the client tries to change its nick
+	// to one another user using, forcing us to choose a random one.
+	case 433:
+		SendNickRandom(client)
 	}
 }
 
@@ -49,6 +53,10 @@ func handleResponse(client *Client, src string, code int, tokens []string) {
 // receiving a message from a server.
 func handleCommand(client *Client, src string, cmd string, tokens []string) {
 	switch cmd {
+	// NICK is sent by servers when they force update a client's nickname,
+	// leaving the client to update its internal state.
+	case "NICK":
+		client.Nick = strings.Join(tokens, " ")[1:]
 	// PING is sent by servers upon connection and at regular intervals. We will
 	// send the same string back.
 	case "PING":

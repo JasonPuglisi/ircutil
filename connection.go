@@ -86,6 +86,7 @@ type Client struct {
 	Server *Server
 	User   *User
 	Conn   net.Conn
+	Nick   string
 }
 
 // Authentication stores authentication credentials for servers and nicknames.
@@ -236,10 +237,7 @@ func pingLoop(client *Client) {
 // sendRawf formats a string to create a raw IRC message that is sent to the
 // client's server. It appends necessary line endings.
 func sendRawf(client *Client, format string, a ...interface{}) {
-	fmt.Fprintf(client.Conn, format+"\r\n", a...)
-	if client.Debug {
-		log.Printf(GetClientPrefix(client)+" \t>> "+format+"\n", a...)
-	}
+	sendRaw(client, fmt.Sprintf(format, a...))
 }
 
 // sendRaw sends a raw IRC message to the client's server. It appends necessary
@@ -247,6 +245,6 @@ func sendRawf(client *Client, format string, a ...interface{}) {
 func sendRaw(client *Client, msg string) {
 	fmt.Fprint(client.Conn, msg+"\r\n")
 	if client.Debug {
-		log.Printf("%s \t>>%s\n", GetClientPrefix(client), msg)
+		log.Printf("%s \t=> %s\n", GetClientPrefix(client), msg)
 	}
 }
