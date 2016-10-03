@@ -109,9 +109,9 @@ type Command struct {
 	Triggers []string `json:"triggers"`
 	// Function that will be executed when the command is triggered.
 	Function string `json:"function"`
-	// (Optional) String of arguments that must follow the command. Optional
-	// arguments must have square brackets around them (e.g., "arg1 [arg2]").
-	// Default: ""
+	// (Optional) String of arguments that must follow the command. Mandatory
+	// arguments must have chevrons around them, and optional arguments must have
+	// square brackets around them (e.g., "<arg1> <arg2> [arg3]"). Default: ""
 	Arguments string `json:"arguments"`
 	// (Optional) Command settings to override default command settings. See
 	// default command settings (above) for descriptions of each setting.

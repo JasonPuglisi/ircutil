@@ -56,6 +56,16 @@ func SendPrivmsg(client *Client, target string, msg string) {
 	sendRawf(client, "PRIVMSG %s :%s", target, msg)
 }
 
+// SendResponse determines whether a message should be sent to a user or
+// or channel, and sends the message accordingly.
+func SendResponse(client *Client, src string, target string, msg string) {
+	if isChannel(target) {
+		SendPrivmsg(client, target, msg)
+	} else {
+		SendPrivmsg(client, getNick(src), msg)
+	}
+}
+
 // SendUser sends initial user details upon server connection.
 func SendUser(client *Client, user string, real string) {
 	sendRawf(client, "USER %s 0 0 :%s", user, real)

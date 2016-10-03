@@ -3,6 +3,7 @@
 package ircutil
 
 import (
+	"fmt"
 	"log"
 	"strconv"
 	"strings"
@@ -13,7 +14,7 @@ import (
 // response code if applicable.
 func parseMessage(client *Client, msg string) {
 	// Remove line ending and print message to console for debugging.
-	msg = strings.TrimSuffix(msg, "\r\n")
+	msg = strings.TrimSpace(strings.TrimSuffix(msg, "\r\n"))
 	if client.Debug {
 		log.Printf("%s \t<= %s\n", GetClientPrefix(client), msg)
 	}
@@ -70,20 +71,57 @@ func handleCommand(client *Client, src string, cmd string, tokens []string) {
 // if found.
 func handleMessage(client *Client, src string, target string, cmd string,
 	tokens []string) {
+	// Loop through all commands.
 	for i := range client.Commands {
 		c := &client.Commands[i]
 		s := &c.Settings
+		// Loop through all triggers for each command.
 		for j := range c.Triggers {
 			t := c.Triggers[j]
+			// Prepend symbol to trigger, and try to match it to the user message.
+			// Ignore cases if case sensitivity is off.
 			trigger := s.Symbol + t
 			if trigger == cmd || (!s.CaseSensitive && strings.ToLower(trigger) ==
 				strings.ToLower(cmd)) {
-				err := ExecCommand(client, c.Function, c, &Message{src, target,
-					trigger, tokens})
-				if err != nil {
-					log.Println(err)
+				// Make sure command call has enough arguments, or error if not.
+				if checkArgs(c.Arguments, tokens) {
+					// Execute command that was found, or error if the function key is not
+					// valid.
+					err := ExecCommand(client, c.Function, c, &Message{src, target,
+						trigger, tokens})
+					if err != nil {
+						log.Println(err)
+					}
+				} else {
+					SendResponse(client, src, target, fmt.Sprintf("Invalid arguments. "+
+						"Usage: %s %s", trigger, c.Arguments))
 				}
 			}
 		}
 	}
+}
+
+// checkArgs determines whether or not a command called by a user has enough
+// arguments to be executed.
+func checkArgs(list string, args []string) bool {
+	// Increment number of needed arguments based on chevron-enclosed tokens in
+	// the list.
+	needed := 0
+	for _, arg := range strings.Split(list, " ") {
+		if arg[0] == '<' && arg[len(arg)-1] == '>' {
+			needed++
+		}
+	}
+	return len(args) >= needed
+}
+
+// isChannel determines whether or not a target is a channel. If it is not a
+// channel, the target will be a user.
+func isChannel(target string) bool {
+	return target[0] == '#'
+}
+
+// getNick isolates a nickname from a source string.
+func getNick(src string) string {
+	return src[0:strings.IndexRune(src, '!')]
 }
