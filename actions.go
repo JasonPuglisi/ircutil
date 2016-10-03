@@ -3,16 +3,17 @@
 package ircutil
 
 import (
-	"fmt"
 	"math/rand"
 	"strconv"
-	"strings"
 )
 
 // SendJoin attaches to a channel with an optional password. An empty string
 // indicates no password.
 func SendJoin(client *Client, channel string, pass string) {
-	sendRaw(client, strings.TrimSpace(fmt.Sprintf("JOIN %s %s", channel, pass)))
+	if pass != "" {
+		pass = " " + pass
+	}
+	sendRawf(client, "JOIN %s%s", channel, pass)
 }
 
 // SendModeUser updates user modes.
@@ -34,6 +35,20 @@ func SendNickRandom(client *Client) {
 // SendNickservPass authenticates a nickname with Nickserv.
 func SendNickservPass(client *Client, pass string) {
 	SendPrivmsg(client, "nickserv", "identify "+pass)
+}
+
+// SendNotice sends a notice to a user or channel.
+func SendNotice(client *Client, target string, msg string) {
+	sendRawf(client, "NOTICE %s :%s", target, msg)
+}
+
+// SendPart detaches from a channel with an optional message. An empty string
+// indicates no message.
+func SendPart(client *Client, channel string, msg string) {
+	if msg != "" {
+		msg = " :" + msg
+	}
+	sendRawf(client, "PART %s%s", channel, msg)
 }
 
 // SendPass authenticates with a password-protected server.
