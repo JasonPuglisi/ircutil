@@ -61,5 +61,29 @@ func handleCommand(client *Client, src string, cmd string, tokens []string) {
 	// send the same string back.
 	case "PING":
 		SendPong(client, strings.Join(tokens, " ")[1:])
+	case "PRIVMSG":
+		handleMessage(client, src, tokens[0], tokens[1][1:], tokens[2:])
+	}
+}
+
+// handleMessage checks a message for a valid command, end executes the command
+// if found.
+func handleMessage(client *Client, src string, target string, cmd string,
+	tokens []string) {
+	for i := range client.Commands {
+		c := &client.Commands[i]
+		s := &c.Settings
+		for j := range c.Triggers {
+			t := c.Triggers[j]
+			trigger := s.Symbol + t
+			if trigger == cmd || (!s.CaseSensitive && strings.ToLower(trigger) ==
+				strings.ToLower(cmd)) {
+				err := ExecCommand(client, c.Function, c, &Message{src, target,
+					trigger, tokens})
+				if err != nil {
+					log.Println(err)
+				}
+			}
+		}
 	}
 }

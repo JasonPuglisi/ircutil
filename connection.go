@@ -80,13 +80,15 @@ type Client struct {
 	// Defaults: All nested defaults
 	Authentication `json:"authentication"`
 	// Other non-configurable values.
-	Debug  bool
-	Ready  func(*Client)
-	Done   chan bool
-	Server *Server
-	User   *User
-	Conn   net.Conn
-	Nick   string
+	CmdMap
+	Commands []Command
+	Debug    bool
+	Ready    func(*Client)
+	Done     chan bool
+	Server   *Server
+	User     *User
+	Conn     net.Conn
+	Nick     string
 }
 
 // Authentication stores authentication credentials for servers and nicknames.
