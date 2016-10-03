@@ -79,10 +79,9 @@ func handleMessage(client *Client, src string, target string, cmd string,
 		for j := range c.Triggers {
 			t := c.Triggers[j]
 			// Prepend symbol to trigger, and try to match it to the user message.
-			// Ignore cases if case sensitivity is off.
+			// Ignore cases if case sensitivity is off. Validate channel/user scope.
 			trigger := s.Symbol + t
-			if trigger == cmd || (!s.CaseSensitive && strings.ToLower(trigger) ==
-				strings.ToLower(cmd)) {
+			if validateCommand(t, target, cmd, s) {
 				// Make sure command call has enough arguments, or error if not.
 				if checkArgs(c.Arguments, tokens) {
 					// Execute command that was found, or error if the function key is not
@@ -99,6 +98,36 @@ func handleMessage(client *Client, src string, target string, cmd string,
 			}
 		}
 	}
+}
+
+// validateCommand makes sure the user has the trigger matches the command,
+// the scope matches the command, and the user admin permissions match the
+// command. It does not check arguments, leaving that to be done separately.
+func validateCommand(trigger string, target string, cmd string,
+	settings *Settings) bool {
+	// Ensure the trigger matches the command, taking into account the
+	// case-sensitivity setting.
+	triggerMatch := trigger == cmd || (!settings.CaseSensitive &&
+		strings.ToLower(trigger) == strings.ToLower(cmd))
+	if !triggerMatch {
+		return false
+	}
+
+	// Ensure the scope matches the command.
+	scopeMatch := false
+	for i := range settings.Scope {
+		s := &settings.Scope[i]
+		if (*s == "channel" && isChannel(target)) || (*s == "direct" &&
+			!isChannel(target)) {
+			scopeMatch = true
+		}
+	}
+	if !scopeMatch {
+		return false
+	}
+
+	// All matches have passed, so return true.
+	return true
 }
 
 // checkArgs determines whether or not a command called by a user has enough
