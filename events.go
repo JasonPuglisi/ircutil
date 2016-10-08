@@ -157,9 +157,11 @@ func checkArgs(list string, args []string) bool {
 	// Increment number of needed arguments based on chevron-enclosed tokens in
 	// the list.
 	needed := 0
-	for _, arg := range strings.Split(list, " ") {
-		if arg[0] == '<' && arg[len(arg)-1] == '>' {
-			needed++
+	if len(list) > 0 {
+		for _, arg := range strings.Split(list, " ") {
+			if arg[0] == '<' && arg[len(arg)-1] == '>' {
+				needed++
+			}
 		}
 	}
 	return len(args) >= needed

@@ -34,7 +34,7 @@ func AddCommand(cmdMap CmdMap, key string, cmdFunc CmdFunc) {
 func ExecCommand(client *Client, key string, command *Command,
 	message *Message) error {
 	if cmdFunc, exists := client.CmdMap[key]; exists {
-		cmdFunc(client, command, message)
+		go cmdFunc(client, command, message)
 	} else {
 		return errors.New("executing command: invalid key")
 	}
