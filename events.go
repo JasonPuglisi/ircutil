@@ -107,6 +107,7 @@ func validateCommand(client *Client, settings *Settings, trigger string,
 	src string, target string, cmd string) bool {
 	// Ensure the trigger matches the command, taking into account the
 	// case-sensitivity setting.
+	trigger = processTrigger(client, trigger)
 	triggerMatch := trigger == cmd || (!settings.CaseSensitive &&
 		strings.ToLower(trigger) == strings.ToLower(cmd))
 	if !triggerMatch {
@@ -143,6 +144,11 @@ func validateCommand(client *Client, settings *Settings, trigger string,
 
 	// All matches have passed, so return true.
 	return true
+}
+
+// processTrigger fills in the nickname variable if it exists within a trigger.
+func processTrigger(client *Client, trigger string) string {
+	return strings.Replace(trigger, "%NICK%", client.Nick, 1)
 }
 
 // checkArgs determines whether or not a command called by a user has enough
