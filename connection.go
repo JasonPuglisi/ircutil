@@ -79,6 +79,8 @@ type Client struct {
 	// Defaults: All nested defaults
 	Authentication `json:"authentication"`
 	// Other non-configurable values.
+	Data     Data
+	DataFile *string
 	CmdMap
 	Commands []Command
 	Debug    bool
@@ -117,6 +119,11 @@ type Command struct {
 	// Defaults: Default command settings
 	Settings `json:"settings"`
 }
+
+// Data stores persistent information in key-value pairs.
+// Format: "scope": { "owner": { "data_group": { "key": "value" } } }
+// Scope must be "user", "channel", or "client".
+type Data map[string]map[string]map[string]map[string]string
 
 // EstablishConnection establishes a connection to the specified IRC server
 // using the specified user information. It sends initial messages as required
