@@ -4,7 +4,6 @@ package ircutil
 
 import (
 	"fmt"
-	"log"
 	"strconv"
 	"strings"
 )
@@ -16,7 +15,7 @@ func parseMessage(client *Client, msg string) {
 	// Remove line ending and print message to console for debugging.
 	msg = strings.TrimSpace(strings.TrimSuffix(msg, "\r\n"))
 	if client.Debug {
-		log.Printf("%s \t<= %s\n", GetClientPrefix(client), msg)
+		Logf(client, "<= %s", msg)
 	}
 
 	// Set empty source and split message into tokens. Update source and remove
@@ -82,7 +81,7 @@ func handleMessage(client *Client, src string, target string, cmd string,
 			t := c.Triggers[j]
 			// Prepend symbol to trigger, and try to match it to the user message.
 			// Ignore cases if case sensitivity is off. Validate channel/user scope.
-			trigger := s.Symbol + t
+			trigger := fmt.Sprintf("%s%s", s.Symbol, t)
 			if validateCommand(client, s, trigger, src, target, cmd) {
 				// Make sure command call has enough arguments, or error if not.
 				if checkArgs(c.Arguments, tokens) {
@@ -91,11 +90,12 @@ func handleMessage(client *Client, src string, target string, cmd string,
 					err := ExecCommand(client, c.Function, c, &Message{src, target,
 						trigger, tokens})
 					if err != nil {
-						log.Println(err)
+						Log(client, err.Error())
 					}
 				} else {
-					SendResponse(client, src, target, fmt.Sprintf("Invalid arguments. "+
-						"Usage: %s %s", trigger, c.Arguments))
+					SendResponse(client, src, target,
+						fmt.Sprintf("Invalid arguments. Usage: %s %s", trigger,
+							c.Arguments))
 				}
 			}
 		}
@@ -167,15 +167,4 @@ func checkArgs(list string, args []string) bool {
 		}
 	}
 	return len(args) >= needed
-}
-
-// isChannel determines whether or not a target is a channel. If it is not a
-// channel, the target will be a user.
-func isChannel(target string) bool {
-	return target[0] == '#'
-}
-
-// getNick isolates a nickname from a source string.
-func getNick(src string) string {
-	return src[0:strings.IndexRune(src, '!')]
 }

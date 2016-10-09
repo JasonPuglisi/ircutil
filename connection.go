@@ -7,7 +7,6 @@ import (
 	"crypto/tls"
 	"errors"
 	"fmt"
-	"log"
 	"net"
 	"regexp"
 	"strconv"
@@ -119,12 +118,6 @@ type Command struct {
 	Settings `json:"settings"`
 }
 
-// GetClientPrefix formats the client server and user ids into a prefix string
-// that's useful terminal output.
-func GetClientPrefix(client *Client) string {
-	return fmt.Sprintf("[%s/%s]", client.ServerID, client.UserID)
-}
-
 // EstablishConnection establishes a connection to the specified IRC server
 // using the specified user information. It sends initial messages as required
 // by the IRC protocol.
@@ -169,9 +162,8 @@ func EstablishConnection(client *Client) error {
 	if err != nil {
 		return err
 	}
-	log.Printf("%s \tConnected to server \"%s:%d\" (%s)\n",
-		GetClientPrefix(client), client.Server.Host, client.Server.Port,
-		conn.RemoteAddr())
+	Logf(client, "Connected to server %s:%d (%s)", client.Server.Host,
+		client.Server.Port, conn.RemoteAddr())
 
 	// Update connection in client and start reading from server and pinging
 	// periodically.
@@ -209,7 +201,7 @@ func readLoop(client *Client) {
 			msg, err := reader.ReadString('\n')
 			client.Conn.SetReadDeadline(time.Time{})
 			if err != nil {
-				log.Println(err)
+				Log(client, err.Error())
 				close(client.Done)
 			} else {
 				parseMessage(client, msg)
@@ -233,20 +225,5 @@ func pingLoop(client *Client) {
 		case <-ticker.C:
 			SendPing(client, strconv.FormatInt(time.Now().UnixNano(), 10))
 		}
-	}
-}
-
-// sendRawf formats a string to create a raw IRC message that is sent to the
-// client's server. It appends necessary line endings.
-func sendRawf(client *Client, format string, a ...interface{}) {
-	sendRaw(client, fmt.Sprintf(format, a...))
-}
-
-// sendRaw sends a raw IRC message to the client's server. It appends necessary
-// line endings.
-func sendRaw(client *Client, msg string) {
-	fmt.Fprint(client.Conn, msg+"\r\n")
-	if client.Debug {
-		log.Printf("%s \t=> %s\n", GetClientPrefix(client), msg)
 	}
 }
