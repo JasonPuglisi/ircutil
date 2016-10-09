@@ -54,10 +54,12 @@ func handleResponse(client *Client, src string, code int, tokens []string) {
 // receiving a message from a server.
 func handleCommand(client *Client, src string, cmd string, tokens []string) {
 	switch cmd {
-	// NICK is sent by servers when they force update a client's nickname,
-	// leaving the client to update its internal state.
+	// NICK is sent when a nickname is updated. Update client's state if it
+	// belongs to the client.
 	case "NICK":
-		client.Nick = strings.Join(tokens, " ")[1:]
+		if client.Nick == getNick(src) {
+			client.Nick = strings.Join(tokens, " ")[1:]
+		}
 	// PING is sent by servers upon connection and at regular intervals. We will
 	// send the same string back.
 	case "PING":
