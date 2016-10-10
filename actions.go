@@ -74,10 +74,10 @@ func SendPrivmsg(client *Client, target string, msg string) {
 // SendResponse determines whether a message should be sent to a user or
 // or channel, and sends the message accordingly.
 func SendResponse(client *Client, src string, target string, msg string) {
-	if isChannel(target) {
+	if IsChannel(target) {
 		SendPrivmsg(client, target, msg)
 	} else {
-		SendPrivmsg(client, getNick(src), msg)
+		SendPrivmsg(client, GetNick(src), msg)
 	}
 }
 

@@ -121,9 +121,10 @@ type Command struct {
 }
 
 // Data stores persistent information in key-value pairs.
-// Format: "scope": { "owner": { "data_group": { "key": "value" } } }
+// Format: "client_prefix": { "scope": { "owner": { "data_group": {
+//         "key": "value" } } } }
 // Scope must be "user", "channel", or "client".
-type Data map[string]map[string]map[string]map[string]string
+type Data map[string]map[string]map[string]map[string]map[string]string
 
 // EstablishConnection establishes a connection to the specified IRC server
 // using the specified user information. It sends initial messages as required

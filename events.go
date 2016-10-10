@@ -56,7 +56,7 @@ func handleCommand(client *Client, src string, cmd string, tokens []string) {
 	// NICK is sent when a nickname is updated. Update client's state if it
 	// belongs to the client.
 	case "NICK":
-		if client.Nick == getNick(src) {
+		if client.Nick == GetNick(src) {
 			client.Nick = strings.Join(tokens, " ")[1:]
 		}
 	// PING is sent by servers upon connection and at regular intervals. We will
@@ -120,8 +120,8 @@ func validateCommand(client *Client, settings *Settings, trigger string,
 	scopeMatch := false
 	for i := range settings.Scope {
 		s := &settings.Scope[i]
-		if (*s == "channel" && isChannel(target)) || (*s == "direct" &&
-			!isChannel(target)) {
+		if (*s == "channel" && IsChannel(target)) || (*s == "direct" &&
+			!IsChannel(target)) {
 			scopeMatch = true
 		}
 	}
@@ -132,7 +132,7 @@ func validateCommand(client *Client, settings *Settings, trigger string,
 	// Ensure user admin permissions match the command.
 	if settings.Admin {
 		adminMatch := false
-		nick := getNick(src)
+		nick := GetNick(src)
 		for i := range client.Admins {
 			a := &client.Admins[i]
 			if *a == nick {
