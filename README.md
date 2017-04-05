@@ -3,7 +3,8 @@
 Utility for connecting to multiple IRC servers and storing connection details.
 
 Developed for use with
-[Inami IRC Bot](https://github.com/JasonPuglisi/inami-irc-bot).
+[Inami IRC Bot](https://github.com/JasonPuglisi/inami-irc-bot). Check out the
+readme and use `go get github.com/jasonpuglisi/inami-irc-bot` to try it out.
 
 ## Overview
 
